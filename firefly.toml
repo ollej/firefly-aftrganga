@@ -1,5 +1,8 @@
 author_id = "olle"
 app_id = "firefly-ghosts"
-author_name = "Olle"
+author_name = "Olle & Catboots"
 app_name = "Firefly Ghosts"
 lang = "rust"
+
+[files]
+spritesheet = { path = "assets/spritesheet.png" }
