@@ -1,7 +1,10 @@
 use core::cell::OnceCell;
 
+use alloc::vec::Vec;
 use ffz_utils::{audio::AudioPlayer, camera::Camera, tile_map::TileMap};
 use firefly_rust::Buttons;
+
+use crate::player::Player;
 
 pub static mut STATE: OnceCell<State> = OnceCell::new();
 
@@ -15,15 +18,22 @@ pub struct State {
     pub camera: Camera,
     pub tile_map: TileMap,
     pub audio_player: AudioPlayer,
+    pub players: Vec<Player>,
 }
 
 impl State {
-    pub fn new(camera: Camera, tile_map: TileMap, audio_player: AudioPlayer) -> Self {
+    pub fn new(
+        camera: Camera,
+        tile_map: TileMap,
+        audio_player: AudioPlayer,
+        players: Vec<Player>,
+    ) -> Self {
         Self {
             buttons: Buttons::default(),
             camera,
             tile_map,
             audio_player,
+            players,
         }
     }
 }

@@ -1,16 +1,15 @@
 #![no_std]
 #![no_main]
 extern crate alloc;
-use alloc::vec;
-use ffz_utils::rectangle::Rectangle;
-use ffz_utils::tile::Tile;
 use ffz_utils::tile_map::TileMap;
 use ffz_utils::{audio::AudioPlayer, camera::Camera};
 use firefly_rust::*;
 
+use crate::player::Player;
 use crate::state::{STATE, State, get_state};
 use crate::tile_array::TILE_ARRAY;
 
+mod player;
 mod state;
 mod tile_array;
 
@@ -30,24 +29,37 @@ extern "C" fn boot() {
     let tile_map = TileMap::new_from_2d_array(TILE_ARRAY, Size::new(16, 16), is_solid, spritesheet);
     let camera = Camera::new(Size::new(480, 480));
     let audio_player = AudioPlayer::new(0.5, 1.0);
+    let map_pixel_size = tile_map.map_size_in_pixels;
+    let start_position = Point::new(map_pixel_size.width / 2, map_pixel_size.height / 2);
+    let players = get_peers()
+        .iter()
+        .map(|peer| Player::new(peer, start_position))
+        .collect();
     //audio_player.play_music("music_loop");
 
     #[allow(static_mut_refs)]
-    unsafe { STATE.set(State::new(camera, tile_map, audio_player)) }
+    unsafe { STATE.set(State::new(camera, tile_map, audio_player, players)) }
         .ok()
         .unwrap();
 }
 
 #[unsafe(no_mangle)]
 extern "C" fn update() {
-    let _state = get_state();
+    let state = get_state();
+    for player in state.players.iter_mut() {
+        player.update(&state.tile_map);
+        if get_me() == player.peer {
+            state.camera.follow_player(player.position, 0.2);
+        }
+    }
 }
 
 #[unsafe(no_mangle)]
 extern "C" fn render() {
     let state = get_state();
-    let map = &state.tile_map;
-    let camera = &state.camera;
     clear_screen(Color::White);
-    map.draw(camera);
+    state.tile_map.draw(&state.camera);
+    for player in state.players.iter() {
+        player.draw(&state.camera);
+    }
 }
