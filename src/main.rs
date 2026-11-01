@@ -112,7 +112,7 @@ extern "C" fn render() {
 fn render_game() {
     let state = get_state();
 
-    clear_screen(Color::from(2));
+    clear_screen(Color::from(1));
     state.tile_map.draw(&state.camera);
     for player in state.players.iter() {
         player.draw(&state.camera, &state.character_sprites);

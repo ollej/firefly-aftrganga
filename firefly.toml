@@ -7,29 +7,28 @@ lang = "rust"
 [files]
 spritesheet = { path = "assets/spritesheet.png", palette = "draugr" }
 character_sprites = { path = "assets/character-sprites.png", palette = "draugr" }
-enemy_sprites = { path = "assets/enemy-sprites.png", palette="draugr" }
+enemy_sprites = { path = "assets/enemy-sprites.png", palette = "draugr" }
 #draugr_sprites = { path = "assets/draugr-spritesheet.png", palette = "draugr" }
 #enemy_sprites = { path = "assets/enemy-spritesheet.png", palette = "draugr" }
 title_font = { path = "assets/title-font.png", palette = "draugr" }
 
 
 [palettes.draugr]
-1  = 0x000000
-2  = 0xFFFFFF
-3  = 0x0CE6F2
-4  = 0x0098DB
-5  = 0x1E579C
-6  = 0x203562
-7  = 0x252446
-8  = 0x201533
-9  = 0x966767
-10 = 0x471717
-11 = 0x0C2E24
-12 = 0x447562
-13 = 0x3B424B
-14 = 0x201533
-15 = 0x2F2522
-16 = 0x000000
+1  = 0xFFFFFF
+2  = 0x0CE6F2
+3  = 0x0098DB
+4  = 0x1E579C
+5  = 0x203562
+6  = 0x252446
+7  = 0x201533
+8  = 0x966767
+9  = 0x471717
+10 = 0x0C2E24
+11 = 0x447562
+12 = 0x3B424B
+13 = 0x201533
+14 = 0x2F2522
+15 = 0x000000
 
 
 
