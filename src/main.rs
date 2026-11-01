@@ -7,9 +7,10 @@ use firefly_rust::*;
 
 use crate::player::Player;
 use crate::state::{STATE, State, get_state};
-use crate::tile_array::TILE_ARRAY;
+use crate::tile_array::{BLOCKING_TILES, TILE_ARRAY};
 
 mod bullet;
+mod monster;
 mod player;
 mod state;
 mod tile_array;
@@ -19,14 +20,7 @@ extern "C" fn boot() {
     let spritesheet = firefly_rust::load_file_buf("spritesheet")
         .unwrap()
         .into_image();
-    let is_solid = |tile_index| {
-        tile_index != 0
-            && tile_index != 16
-            && tile_index != 17
-            && tile_index != 24
-            && tile_index != 25
-    };
-
+    let is_solid = |tile_index| BLOCKING_TILES.contains(&tile_index);
     let tile_map = TileMap::new_from_2d_array(TILE_ARRAY, Size::new(16, 16), is_solid, spritesheet);
     let camera = Camera::new(Size::new(480, 480));
     let audio_player = AudioPlayer::new(0.5, 1.0);
@@ -54,6 +48,7 @@ extern "C" fn update() {
         }
     }
     state.bullets.update(&state.camera);
+    state.monsters.update(&state.tile_map);
 }
 
 #[unsafe(no_mangle)]
@@ -64,5 +59,6 @@ extern "C" fn render() {
     for player in state.players.iter() {
         player.draw(&state.camera);
     }
+    state.monsters.draw(&state.camera);
     state.bullets.draw(&state.camera);
 }

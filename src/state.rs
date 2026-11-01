@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use ffz_utils::{audio::AudioPlayer, camera::Camera, tile_map::TileMap};
 use firefly_rust::Buttons;
 
-use crate::{bullet::Bullets, player::Player};
+use crate::{bullet::Bullets, monster::Monsters, player::Player};
 
 pub static mut STATE: OnceCell<State> = OnceCell::new();
 
@@ -20,6 +20,7 @@ pub struct State {
     pub audio_player: AudioPlayer,
     pub players: Vec<Player>,
     pub bullets: Bullets,
+    pub monsters: Monsters,
 }
 
 impl State {
@@ -36,6 +37,7 @@ impl State {
             audio_player,
             players,
             bullets: Bullets::new(),
+            monsters: Monsters::new(30),
         }
     }
 }
