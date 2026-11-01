@@ -1,32 +1,10 @@
-use alloc::format;
 use ffz_utils::{
     camera::Camera, movable::movement_to_step, point_math::PointMath, tile_map::TileMap,
     vector::Vector,
 };
-use firefly_rust::{
-    Buttons, Color, Peer, Point, Style, draw_circle, log_debug, math, read_buttons, read_pad,
-};
+use firefly_rust::{Buttons, Color, Peer, Point, Style, draw_circle, math, read_buttons, read_pad};
 
 use crate::state::get_state;
-
-pub const MOVE_DIRECTIONS: [Vector; 16] = [
-    Vector::new(1.0, 0.0),
-    Vector::new(0.92388, 0.382683),
-    Vector::new(0.707107, 0.707107),
-    Vector::new(0.382683, 0.92388),
-    Vector::new(0.0, 1.0),
-    Vector::new(-0.382683, 0.92388),
-    Vector::new(-0.707107, 0.707107),
-    Vector::new(-0.92388, 0.382683),
-    Vector::new(-1.0, 0.0),
-    Vector::new(-0.92388, -0.382683),
-    Vector::new(-0.707107, -0.707107),
-    Vector::new(-0.382683, -0.92388),
-    Vector::new(0.0, -1.0),
-    Vector::new(0.382683, -0.92388),
-    Vector::new(0.707107, -0.707107),
-    Vector::new(0.92388, -0.382683),
-];
 
 pub struct Player {
     buttons: Buttons,
