@@ -139,7 +139,6 @@ impl Player {
     }
 
     pub fn draw_player(&self, camera: &Camera, sheet: &ImageBuf) {
-        let draw_position = camera.world_to_screen(self.position);
         self.sprite.draw(self.position, camera, sheet, PLAYER_SPRITE);
     }
 

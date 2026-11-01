@@ -55,7 +55,7 @@ impl ActorSprite {
         }
 
         if self.moving {
-            self.walk_tick = (self.walk_tick) % WALK_CYCLE_TICKS;
+            self.walk_tick = (self.walk_tick + 1) % WALK_CYCLE_TICKS;
         } else {
             self.walk_tick = 0;
         }
