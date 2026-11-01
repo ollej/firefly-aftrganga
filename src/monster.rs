@@ -3,7 +3,7 @@ use ffz_utils::{
     camera::Camera, movable::movement_to_step, point_math::PointMath, rectangle::Rectangle,
     tile_map::TileMap, vector::Vector,
 };
-use firefly_rust::{Color, Image, ImageBuf, Point, Size, Style, draw_circle, math};
+use firefly_rust::{ImageBuf, Point, Size, math};
 
 use crate::actor_sprite::{ActorSprite, ENEMY_SPRITE};
 use crate::state::get_state;
@@ -45,7 +45,7 @@ impl Monsters {
         for monster in self.monsters.iter_mut() {
             monster.update();
         }
-        self.monsters.retain(|monster| !monster.is_dead());
+        self.monsters.retain(|monster| monster.alive);
         self.spawn_timer = self.spawn_timer.saturating_sub(1);
         if self.spawn_timer == 0 {
             self.spawn_timer = self.max_spawn_timer;
@@ -65,14 +65,19 @@ impl Monsters {
 
         self.add(position, velocity);
     }
+
+    pub fn hit_by(&mut self, rect: Rectangle) -> Option<&mut Monster> {
+        self.monsters.iter_mut().find(|monster| monster.hits(rect))
+    }
 }
 
-struct Monster {
+pub struct Monster {
     position: Point,
     velocity: Vector,
     remainder: Vector,
     movement_timer: u32,
     sprite: ActorSprite,
+    alive: bool,
 }
 
 impl Default for Monster {
@@ -83,6 +88,7 @@ impl Default for Monster {
             remainder: Vector::ZERO,
             movement_timer: 0,
             sprite: ActorSprite::new(),
+            alive: true,
         }
     }
 }
@@ -148,11 +154,6 @@ impl Monster {
         }
     }
 
-    pub fn is_dead(&self) -> bool {
-        let state = get_state();
-        state.bullets.hits(self.rect())
-    }
-
     fn vector_to_closest_player(&self) -> Option<Vector> {
         let state = get_state();
         state
@@ -161,6 +162,10 @@ impl Monster {
             .map(|player| Vector::from_point(player.position - self.position))
             .min_by(|a, b| a.magnitude().total_cmp(&b.magnitude()))
             .map(|dir| dir.normalize())
+    }
+
+    pub fn kill(&mut self) {
+        self.alive = false;
     }
 
     fn kill_players(&mut self) {

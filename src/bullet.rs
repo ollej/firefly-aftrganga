@@ -26,6 +26,7 @@ impl Bullets {
         for bullet in self.bullets.iter_mut() {
             bullet.update();
         }
+        self.hit_monsters();
         self.bullets.retain(|bullet| bullet.should_keep(camera));
     }
 
@@ -35,15 +36,14 @@ impl Bullets {
         }
     }
 
-    pub fn hits(&mut self, rect: Rectangle) -> bool {
-        self.bullets
-            .iter_mut()
-            .find(|bullet| rect.overlaps(bullet.rect()))
-            .map(|bullet| {
+    pub fn hit_monsters(&mut self) {
+        let state = get_state();
+        for bullet in self.bullets.iter_mut() {
+            if let Some(monster) = state.monsters.hit_by(bullet.rect()) {
                 bullet.kill();
-                bullet
-            })
-            .is_some()
+                monster.kill();
+            }
+        }
     }
 }
 

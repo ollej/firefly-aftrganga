@@ -8,8 +8,6 @@ lang = "rust"
 spritesheet = { path = "assets/spritesheet.png", palette = "draugr" }
 character_sprites = { path = "assets/character-sprites.png", palette = "draugr" }
 enemy_sprites = { path = "assets/enemy-sprites.png", palette = "draugr" }
-#draugr_sprites = { path = "assets/draugr-spritesheet.png", palette = "draugr" }
-#enemy_sprites = { path = "assets/enemy-spritesheet.png", palette = "draugr" }
 title_font = { path = "assets/title-font.png", palette = "draugr" }
 
 
