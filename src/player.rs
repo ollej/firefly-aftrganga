@@ -1,8 +1,11 @@
+use alloc::format;
 use ffz_utils::{
     camera::Camera, movable::movement_to_step, point_math::PointMath, tile_map::TileMap,
     vector::Vector,
 };
-use firefly_rust::{Buttons, Color, Peer, Point, Style, draw_circle, math, read_buttons, read_pad};
+use firefly_rust::{
+    Buttons, Color, Peer, Point, Style, draw_circle, log_debug, math, read_buttons, read_pad,
+};
 
 use crate::state::get_state;
 
@@ -67,22 +70,10 @@ impl Player {
 
     pub fn update(&mut self, tile_map: &TileMap) {
         if let Some(pad) = read_pad(self.peer) {
-            let dpad = pad.as_dpad8();
-            let mut direction = Vector::ZERO;
-            if dpad.left {
-                direction.x = -1.0;
+            if pad.radius() > 400.0 {
+                self.velocity = Into::<Vector>::into(pad) * self.speed;
+                self.move_player(self.velocity, tile_map);
             }
-            if dpad.right {
-                direction.x = 1.0;
-            }
-            if dpad.up {
-                direction.y = -1.0;
-            }
-            if dpad.down {
-                direction.y = 1.0;
-            }
-            self.velocity = direction.normalize() * self.speed;
-            self.move_player(self.velocity, tile_map);
         }
 
         let buttons = read_buttons(self.peer);
