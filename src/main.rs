@@ -9,6 +9,7 @@ use crate::player::Player;
 use crate::state::{STATE, State, get_state};
 use crate::tile_array::TILE_ARRAY;
 
+mod bullet;
 mod player;
 mod state;
 mod tile_array;
@@ -52,6 +53,7 @@ extern "C" fn update() {
             state.camera.follow_player(player.position, 0.2);
         }
     }
+    state.bullets.update(&state.camera);
 }
 
 #[unsafe(no_mangle)]
@@ -62,4 +64,5 @@ extern "C" fn render() {
     for player in state.players.iter() {
         player.draw(&state.camera);
     }
+    state.bullets.draw(&state.camera);
 }
