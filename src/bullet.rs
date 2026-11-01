@@ -42,6 +42,7 @@ impl Bullets {
             if let Some(monster) = state.monsters.hit_by(bullet.rect()) {
                 bullet.kill();
                 monster.kill();
+                state.audio_player.play_sfx("hit");
                 state.particles.spawn_radial_burst(
                     bullet.position,
                     random_range(1, 5) as i32,

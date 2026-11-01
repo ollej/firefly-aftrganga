@@ -173,6 +173,7 @@ impl Monster {
         for player in state.players.iter_mut() {
             if self.hits(player.rect()) {
                 player.kill();
+                state.audio_player.play_sfx("lose");
             }
         }
     }

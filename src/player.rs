@@ -84,11 +84,11 @@ impl Player {
         let state = get_state();
 
         if self.shoot_timer == 0 {
-            state.audio_player.play_sfx("shoot");
+            //state.audio_player.play_sfx("shoot");
             state.bullets.add(self.position, self.velocity);
             self.shoot_timer = Self::SHOOT_TIMER;
         } else {
-            state.audio_player.play_sfx("failed_shot");
+            //state.audio_player.play_sfx("failed_shot");
         }
     }
 
