@@ -2,15 +2,17 @@ use ffz_utils::{
     camera::Camera, movable::movement_to_step, point_math::PointMath, tile_map::TileMap,
     vector::Vector,
 };
-use firefly_rust::{Buttons, Color, Peer, Point, Style, draw_circle, math, read_buttons, read_pad};
+use firefly_rust::{Buttons, Color, Peer, Point, ImageBuf, Style, draw_circle, math, read_buttons, read_pad};
 
 use crate::state::get_state;
+use crate::actor_sprite::{ActorSprite, PLAYER_SPRITE};
 
 pub struct Player {
     buttons: Buttons,
     pub peer: Peer,
     pub points: i32,
     pub position: Point,
+    sprite: ActorSprite,
     start_position: Point,
     speed: f32,
     remainder: Vector,
@@ -26,6 +28,7 @@ impl Default for Player {
             points: 0,
             speed: 2.5,
             position: Point::MIN,
+            sprite: ActorSprite::new(),
             start_position: Point::MIN,
             remainder: Vector::ZERO,
             shoot_timer: 0,
@@ -47,12 +50,21 @@ impl Player {
     }
 
     pub fn update(&mut self, tile_map: &TileMap) {
+        let previous_position = self.position;
+        
         if let Some(pad) = read_pad(self.peer) {
             if pad.radius() > 400.0 {
                 self.velocity = Into::<Vector>::into(pad) * self.speed;
                 self.move_player(self.velocity, tile_map);
             }
         }
+
+        let actual_delta = Vector::new(
+            (self.position.x - previous_position.x) as f32,
+            (self.position.y - previous_position.y) as f32,
+        );
+        
+        self.sprite.update(actual_delta, PLAYER_SPRITE);
 
         let buttons = read_buttons(self.peer);
         let just_pressed = buttons.just_pressed(&self.buttons);
@@ -122,24 +134,13 @@ impl Player {
         }
     }
 
-    pub fn draw(&self, camera: &Camera) {
-        self.draw_player(camera);
+    pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
+        self.draw_player(camera, sheet);
     }
 
-    pub fn draw_player(&self, camera: &Camera) {
+    pub fn draw_player(&self, camera: &Camera, sheet: &ImageBuf) {
         let draw_position = camera.world_to_screen(self.position);
-        draw_circle(
-            Point {
-                x: draw_position.x - 4,
-                y: draw_position.y - 4,
-            },
-            8,
-            Style {
-                fill_color: Color::Purple,
-                stroke_color: Color::Black,
-                stroke_width: 1,
-            },
-        );
+        self.sprite.draw(self.position, camera, sheet, PLAYER_SPRITE);
     }
 
     pub fn reset(&mut self) {

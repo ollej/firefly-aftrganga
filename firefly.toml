@@ -6,8 +6,10 @@ lang = "rust"
 
 [files]
 spritesheet = { path = "assets/spritesheet.png", palette = "draugr" }
+character_sprites = { path = "assets/character-sprites.png", palette = "draugr" }
 #draugr_sprites = { path = "assets/draugr-spritesheet.png", palette = "draugr" }
 #enemy_sprites = { path = "assets/enemy-spritesheet.png", palette = "draugr" }
+
 
 [palettes.draugr]
 1  = 0x000000
