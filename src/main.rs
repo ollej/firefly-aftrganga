@@ -55,8 +55,11 @@ extern "C" fn boot() {
     let character_spritesheet = firefly_rust::load_file_buf("character_sprites")
         .unwrap()
         .into_image();
+    let enemy_spritesheet = firefly_rust::load_file_buf("enemy_sprites")
+        .unwrap()
+        .into_image();
     #[allow(static_mut_refs)]
-    unsafe { STATE.set(State::new(camera, tile_map, audio_player, players, character_spritesheet)) }
+    unsafe { STATE.set(State::new(camera, tile_map, audio_player, players, character_spritesheet, enemy_spritesheet)) }
         .ok()
         .unwrap();
 }
@@ -82,6 +85,6 @@ extern "C" fn render() {
     for player in state.players.iter() {
         player.draw(&state.camera, &state.character_sprites);
     }
-    state.monsters.draw(&state.camera);
+    state.monsters.draw(&state.camera, &state.enemy_sprites);
     state.bullets.draw(&state.camera);
 }

@@ -3,9 +3,10 @@ use ffz_utils::{
     camera::Camera, movable::movement_to_step, point_math::PointMath, rectangle::Rectangle,
     tile_map::TileMap, vector::Vector,
 };
-use firefly_rust::{Color, Point, Size, Style, draw_circle, math};
+use firefly_rust::{Color, Image, ImageBuf, Point, Size, Style, draw_circle, math};
 
 use crate::state::get_state;
+use crate::actor_sprite::{ActorSprite, ENEMY_SPRITE};
 
 pub struct Monsters {
     monsters: Vec<Monster>,
@@ -41,6 +42,7 @@ impl Monsters {
     }
 
     pub fn update(&mut self, tile_map: &TileMap) {
+        
         for monster in self.monsters.iter_mut() {
             monster.update();
         }
@@ -52,9 +54,9 @@ impl Monsters {
         }
     }
 
-    pub fn draw(&self, camera: &Camera) {
+    pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
         for monster in self.monsters.iter() {
-            monster.draw(camera);
+            monster.draw(camera, sheet);
         }
     }
 
@@ -71,6 +73,7 @@ struct Monster {
     velocity: Vector,
     remainder: Vector,
     movement_timer: u32,
+    sprite: ActorSprite,
 }
 
 impl Default for Monster {
@@ -80,6 +83,7 @@ impl Default for Monster {
             velocity: Vector::ZERO,
             remainder: Vector::ZERO,
             movement_timer: 0,
+            sprite: ActorSprite::new(),
         }
     }
 }
@@ -96,6 +100,9 @@ impl Monster {
     }
 
     pub fn update(&mut self) {
+
+        let previous_position = self.position;
+
         self.movement_timer = self.movement_timer.saturating_sub(1);
         if self.movement_timer == 0 {
             self.velocity = self.vector_to_closest_player().unwrap_or(Vector::ZERO);
@@ -103,6 +110,12 @@ impl Monster {
         }
         self.move_horizontally();
         self.move_vertically();
+
+        let actual_delta = Vector::new(
+            (self.position.x - previous_position.x) as f32,
+            (self.position.y - previous_position.y) as f32,
+        );
+        self.sprite.update(actual_delta, ENEMY_SPRITE);
     }
 
     pub fn move_horizontally(&mut self) {
@@ -125,20 +138,8 @@ impl Monster {
         }
     }
 
-    pub fn draw(&self, camera: &Camera) {
-        let draw_position = camera.world_to_screen(self.position);
-        draw_circle(
-            Point {
-                x: draw_position.x - 8,
-                y: draw_position.y - 8,
-            },
-            16,
-            Style {
-                fill_color: Color::Blue,
-                stroke_color: Color::Blue,
-                stroke_width: 1,
-            },
-        );
+    pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
+        self.sprite.draw(self.position, camera, sheet, ENEMY_SPRITE);
     }
 
     pub fn rect(&self) -> Rectangle {

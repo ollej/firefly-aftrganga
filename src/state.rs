@@ -2,7 +2,7 @@ use core::cell::OnceCell;
 
 use alloc::vec::Vec;
 use ffz_utils::{audio::AudioPlayer, camera::Camera, tile_map::TileMap};
-use firefly_rust::{Buttons, ImageBuf};
+use firefly_rust::{Buttons, Image, ImageBuf};
 
 use crate::{bullet::Bullets, monster::Monsters, player::Player};
 
@@ -22,6 +22,7 @@ pub struct State {
     pub bullets: Bullets,
     pub monsters: Monsters,
     pub character_sprites: ImageBuf,
+    pub enemy_sprites: ImageBuf,
 }
 
 impl State {
@@ -31,6 +32,7 @@ impl State {
         audio_player: AudioPlayer,
         players: Vec<Player>,
         character_sprites: ImageBuf,
+        enemy_sprites: ImageBuf
     ) -> Self {
         Self {
             buttons: Buttons::default(),
@@ -39,6 +41,7 @@ impl State {
             audio_player,
             players,
             character_sprites,
+            enemy_sprites,
             bullets: Bullets::new(),
             monsters: Monsters::new(30),
         }
