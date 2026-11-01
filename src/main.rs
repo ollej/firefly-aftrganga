@@ -2,6 +2,7 @@
 #![no_main]
 extern crate alloc;
 use ffz_utils::tile_map::TileMap;
+use ffz_utils::utilities::random_range;
 use ffz_utils::{audio::AudioPlayer, camera::Camera};
 use firefly_rust::*;
 
@@ -21,7 +22,17 @@ extern "C" fn boot() {
         .unwrap()
         .into_image();
     let is_solid = |tile_index| BLOCKING_TILES.contains(&tile_index);
-    let tile_map = TileMap::new_from_2d_array(TILE_ARRAY, Size::new(16, 16), is_solid, spritesheet);
+    let modify_tile = |tile_index| match tile_index {
+        0 => random_range(56, 58) as i32,
+        _ => tile_index,
+    };
+    let tile_map = TileMap::new_from_2d_array(
+        TILE_ARRAY,
+        Size::new(16, 16),
+        is_solid,
+        modify_tile,
+        spritesheet,
+    );
     let camera = Camera::new(Size::new(480, 480));
     let audio_player = AudioPlayer::new(0.5, 1.0);
     let map_pixel_size = tile_map.map_size_in_pixels;
