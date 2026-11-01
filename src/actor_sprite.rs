@@ -49,6 +49,16 @@ impl ActorSprite {
     pub fn update(&mut self, actual_delta: Vector, spec: SpriteSpec){
         
         self.moving = actual_delta.x != 0.0 || actual_delta.y != 0.0;
+    
+        if self.moving && !self.is_attacking() {
+            self.facing =  facing_row(actual_delta)
+        }
+
+        if self.moving {
+            self.walk_tick = (self.walk_tick) % WALK_CYCLE_TICKS;
+        } else {
+            self.walk_tick = 0;
+        }
     }
 
     pub fn draw(
