@@ -1,28 +1,34 @@
 #![no_std]
 #![no_main]
 extern crate alloc;
+use ffz_utils::image_text::{CHARACTERS, ImageText};
 use ffz_utils::tile_map::TileMap;
 use ffz_utils::utilities::random_range;
 use ffz_utils::{audio::AudioPlayer, camera::Camera};
 use firefly_rust::*;
 
+use crate::game_state::GameState;
 use crate::palette::set_colors;
 use crate::player::Player;
 use crate::state::{STATE, State, get_state};
 use crate::tile_array::{BLOCKING_TILES, TILE_ARRAY};
 
+mod actor_sprite;
 mod bullet;
+mod game_state;
 mod monster;
 mod palette;
 mod player;
 mod state;
 mod tile_array;
-mod actor_sprite;
 
 #[unsafe(no_mangle)]
 extern "C" fn boot() {
     set_colors();
     let spritesheet = firefly_rust::load_file_buf("spritesheet")
+        .unwrap()
+        .into_image();
+    let title_font = firefly_rust::load_file_buf("title_font")
         .unwrap()
         .into_image();
     let is_solid = |tile_index| BLOCKING_TILES.contains(&tile_index);
@@ -59,14 +65,30 @@ extern "C" fn boot() {
         .unwrap()
         .into_image();
     #[allow(static_mut_refs)]
-    unsafe { STATE.set(State::new(camera, tile_map, audio_player, players, character_spritesheet, enemy_spritesheet)) }
-        .ok()
-        .unwrap();
+    unsafe {
+        STATE.set(State::new(
+            camera,
+            tile_map,
+            audio_player,
+            players,
+            character_spritesheet,
+            enemy_spritesheet,
+            ImageText::new(CHARACTERS.to_vec(), title_font),
+        ))
+    }
+    .ok()
+    .unwrap();
 }
 
 #[unsafe(no_mangle)]
 extern "C" fn update() {
     let state = get_state();
+
+    if state.players.iter().any(|player| !player.alive) {
+        state.game_state = GameState::GameOver;
+        return;
+    }
+
     for player in state.players.iter_mut() {
         player.update(&state.tile_map);
         if get_me() == player.peer {
@@ -80,6 +102,16 @@ extern "C" fn update() {
 #[unsafe(no_mangle)]
 extern "C" fn render() {
     let state = get_state();
+
+    match state.game_state {
+        GameState::Playing => render_game(),
+        GameState::GameOver => render_gameover(),
+    }
+}
+
+fn render_game() {
+    let state = get_state();
+
     clear_screen(Color::from(2));
     state.tile_map.draw(&state.camera);
     for player in state.players.iter() {
@@ -87,4 +119,11 @@ extern "C" fn render() {
     }
     state.monsters.draw(&state.camera, &state.enemy_sprites);
     state.bullets.draw(&state.camera);
+}
+
+fn render_gameover() {
+    let state = get_state();
+    clear_screen(Color::from(13));
+    state.image_text.draw("GAME", Point::new(42, 44), 1);
+    state.image_text.draw("OVER", Point::new(48, 84), 1);
 }

@@ -1,11 +1,12 @@
+use ffz_utils::rectangle::Rectangle;
 use ffz_utils::{
     camera::Camera, movable::movement_to_step, point_math::PointMath, tile_map::TileMap,
     vector::Vector,
 };
-use firefly_rust::{Buttons, Color, Peer, Point, ImageBuf, Style, draw_circle, math, read_buttons, read_pad};
+use firefly_rust::{Buttons, ImageBuf, Peer, Point, Size, math, read_buttons, read_pad};
 
-use crate::state::get_state;
 use crate::actor_sprite::{ActorSprite, PLAYER_SPRITE};
+use crate::state::get_state;
 
 pub struct Player {
     buttons: Buttons,
@@ -18,6 +19,7 @@ pub struct Player {
     remainder: Vector,
     shoot_timer: u32,
     velocity: Vector,
+    pub alive: bool,
 }
 
 impl Default for Player {
@@ -33,6 +35,7 @@ impl Default for Player {
             remainder: Vector::ZERO,
             shoot_timer: 0,
             velocity: Vector::ZERO,
+            alive: true,
         }
     }
 }
@@ -51,7 +54,7 @@ impl Player {
 
     pub fn update(&mut self, tile_map: &TileMap) {
         let previous_position = self.position;
-        
+
         if let Some(pad) = read_pad(self.peer) {
             if pad.radius() > 400.0 {
                 self.velocity = Into::<Vector>::into(pad) * self.speed;
@@ -63,7 +66,7 @@ impl Player {
             (self.position.x - previous_position.x) as f32,
             (self.position.y - previous_position.y) as f32,
         );
-        
+
         self.sprite.update(actual_delta, PLAYER_SPRITE);
 
         let buttons = read_buttons(self.peer);
@@ -139,15 +142,28 @@ impl Player {
     }
 
     pub fn draw_player(&self, camera: &Camera, sheet: &ImageBuf) {
-        self.sprite.draw(self.position, camera, sheet, PLAYER_SPRITE);
+        self.sprite
+            .draw(self.position, camera, sheet, PLAYER_SPRITE);
     }
 
     pub fn reset(&mut self) {
+        self.alive = true;
         self.points = 0;
         self.position = self.start_position;
     }
 
     pub fn stop_movement(&mut self) {
         self.remainder = Vector::ZERO;
+    }
+
+    pub fn rect(&self) -> Rectangle {
+        Rectangle {
+            position: Point::new(self.position.x - 8, self.position.y - 8),
+            size: Size::new(16, 16),
+        }
+    }
+
+    pub fn kill(&mut self) {
+        self.alive = false;
     }
 }

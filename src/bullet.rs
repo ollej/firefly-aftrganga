@@ -5,6 +5,8 @@ use ffz_utils::{
 };
 use firefly_rust::{Color, Point, Size, Style, draw_circle, math};
 
+use crate::state::get_state;
+
 pub struct Bullets {
     pub bullets: Vec<Bullet>,
 }

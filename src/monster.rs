@@ -5,8 +5,8 @@ use ffz_utils::{
 };
 use firefly_rust::{Color, Image, ImageBuf, Point, Size, Style, draw_circle, math};
 
-use crate::state::get_state;
 use crate::actor_sprite::{ActorSprite, ENEMY_SPRITE};
+use crate::state::get_state;
 
 pub struct Monsters {
     monsters: Vec<Monster>,
@@ -42,7 +42,6 @@ impl Monsters {
     }
 
     pub fn update(&mut self, tile_map: &TileMap) {
-        
         for monster in self.monsters.iter_mut() {
             monster.update();
         }
@@ -100,7 +99,6 @@ impl Monster {
     }
 
     pub fn update(&mut self) {
-
         let previous_position = self.position;
 
         self.movement_timer = self.movement_timer.saturating_sub(1);
@@ -116,6 +114,7 @@ impl Monster {
             (self.position.y - previous_position.y) as f32,
         );
         self.sprite.update(actual_delta, ENEMY_SPRITE);
+        self.kill_players();
     }
 
     pub fn move_horizontally(&mut self) {
@@ -162,5 +161,18 @@ impl Monster {
             .map(|player| Vector::from_point(player.position - self.position))
             .min_by(|a, b| a.magnitude().total_cmp(&b.magnitude()))
             .map(|dir| dir.normalize())
+    }
+
+    fn kill_players(&mut self) {
+        let state = get_state();
+        for player in state.players.iter_mut() {
+            if self.hits(player.rect()) {
+                player.kill();
+            }
+        }
+    }
+
+    fn hits(&self, rect: Rectangle) -> bool {
+        self.rect().overlaps(rect)
     }
 }
