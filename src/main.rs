@@ -5,6 +5,7 @@ use ffz_utils::image_text::{CHARACTERS, ImageText};
 use ffz_utils::tile_map::TileMap;
 use ffz_utils::utilities::random_range;
 use ffz_utils::{audio::AudioPlayer, camera::Camera};
+use ffz_utils::animation::*;
 use firefly_rust::*;
 
 use crate::game_state::GameState;
@@ -64,6 +65,9 @@ extern "C" fn boot() {
     let enemy_spritesheet = firefly_rust::load_file_buf("enemy_sprites")
         .unwrap()
         .into_image();
+    let bullet_sprites = firefly_rust::load_file_buf("bullet_sprites")
+        .unwrap()
+        .into_image();
     #[allow(static_mut_refs)]
     unsafe {
         STATE.set(State::new(
@@ -74,6 +78,7 @@ extern "C" fn boot() {
             character_spritesheet,
             enemy_spritesheet,
             ImageText::new(CHARACTERS.to_vec(), title_font),
+            bullet_sprites,
         ))
     }
     .ok()
@@ -118,7 +123,7 @@ fn render_game() {
         player.draw(&state.camera, &state.character_sprites);
     }
     state.monsters.draw(&state.camera, &state.enemy_sprites);
-    state.bullets.draw(&state.camera);
+    state.bullets.draw(&state.camera, &state.bullet_sprites )
 }
 
 fn render_gameover() {
