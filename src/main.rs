@@ -6,24 +6,33 @@ use ffz_utils::utilities::random_range;
 use ffz_utils::{audio::AudioPlayer, camera::Camera};
 use firefly_rust::*;
 
+use crate::palette::set_colors;
 use crate::player::Player;
 use crate::state::{STATE, State, get_state};
 use crate::tile_array::{BLOCKING_TILES, TILE_ARRAY};
 
 mod bullet;
 mod monster;
+mod palette;
 mod player;
 mod state;
 mod tile_array;
 
 #[unsafe(no_mangle)]
 extern "C" fn boot() {
+    set_colors();
     let spritesheet = firefly_rust::load_file_buf("spritesheet")
         .unwrap()
         .into_image();
     let is_solid = |tile_index| BLOCKING_TILES.contains(&tile_index);
     let modify_tile = |tile_index| match tile_index {
-        0 => random_range(56, 58) as i32,
+        0 => {
+            if random_range(0, 100) > 75 {
+                random_range(1, 3) as i32
+            } else {
+                0
+            }
+        }
         _ => tile_index,
     };
     let tile_map = TileMap::new_from_2d_array(
@@ -65,7 +74,7 @@ extern "C" fn update() {
 #[unsafe(no_mangle)]
 extern "C" fn render() {
     let state = get_state();
-    clear_screen(Color::White);
+    clear_screen(Color::from(2));
     state.tile_map.draw(&state.camera);
     for player in state.players.iter() {
         player.draw(&state.camera);
