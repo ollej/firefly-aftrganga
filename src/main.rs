@@ -15,6 +15,7 @@ mod monster;
 mod player;
 mod state;
 mod tile_array;
+mod actor_sprite;
 
 #[unsafe(no_mangle)]
 extern "C" fn boot() {
@@ -42,9 +43,11 @@ extern "C" fn boot() {
         .map(|peer| Player::new(peer, start_position))
         .collect();
     //audio_player.play_music("music_loop");
-
+    let character_spritesheet = firefly_rust::load_file_buf("character_sprites")
+        .unwrap()
+        .into_image();
     #[allow(static_mut_refs)]
-    unsafe { STATE.set(State::new(camera, tile_map, audio_player, players)) }
+    unsafe { STATE.set(State::new(camera, tile_map, audio_player, players, character_spritesheet)) }
         .ok()
         .unwrap();
 }
@@ -68,7 +71,7 @@ extern "C" fn render() {
     clear_screen(Color::White);
     state.tile_map.draw(&state.camera);
     for player in state.players.iter() {
-        player.draw(&state.camera);
+        player.draw(&state.camera, &state.character_sprites);
     }
     state.monsters.draw(&state.camera);
     state.bullets.draw(&state.camera);
