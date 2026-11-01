@@ -1,9 +1,9 @@
 use alloc::vec::Vec;
 use ffz_utils::{
-    camera::Camera, movable::movement_to_step, point_math::PointMath, tile_map::TileMap,
-    vector::Vector,
+    camera::Camera, movable::movement_to_step, point_math::PointMath, rectangle::Rectangle,
+    tile_map::TileMap, vector::Vector,
 };
-use firefly_rust::{Color, Point, Style, draw_circle, log_debug, math};
+use firefly_rust::{Color, Point, Size, Style, draw_circle, math};
 
 use crate::state::get_state;
 
@@ -129,10 +129,10 @@ impl Monster {
         let draw_position = camera.world_to_screen(self.position);
         draw_circle(
             Point {
-                x: draw_position.x - 3,
-                y: draw_position.y - 3,
+                x: draw_position.x - 8,
+                y: draw_position.y - 8,
             },
-            4,
+            16,
             Style {
                 fill_color: Color::Blue,
                 stroke_color: Color::Blue,
@@ -141,8 +141,16 @@ impl Monster {
         );
     }
 
+    pub fn rect(&self) -> Rectangle {
+        Rectangle {
+            position: Point::new(self.position.x - 8, self.position.y - 8),
+            size: Size::new(16, 16),
+        }
+    }
+
     pub fn is_dead(&self) -> bool {
-        false
+        let state = get_state();
+        state.bullets.hits(self.rect())
     }
 
     fn vector_to_closest_player(&self) -> Option<Vector> {

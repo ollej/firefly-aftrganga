@@ -1,28 +1,12 @@
 use alloc::vec::Vec;
-use ffz_utils::{camera::Camera, movable::movement_to_step, point_math::PointMath, vector::Vector};
-use firefly_rust::{Color, Point, Style, draw_circle, math};
-
-pub const SHOOT_DIRECTIONS: [Vector; 16] = [
-    Vector::new(1.0, 0.0),
-    Vector::new(0.92388, 0.382683),
-    Vector::new(0.707107, 0.707107),
-    Vector::new(0.382683, 0.92388),
-    Vector::new(0.0, 1.0),
-    Vector::new(-0.382683, 0.92388),
-    Vector::new(-0.707107, 0.707107),
-    Vector::new(-0.92388, 0.382683),
-    Vector::new(-1.0, 0.0),
-    Vector::new(-0.92388, -0.382683),
-    Vector::new(-0.707107, -0.707107),
-    Vector::new(-0.382683, -0.92388),
-    Vector::new(0.0, -1.0),
-    Vector::new(0.382683, -0.92388),
-    Vector::new(0.707107, -0.707107),
-    Vector::new(0.92388, -0.382683),
-];
+use ffz_utils::{
+    camera::Camera, movable::movement_to_step, point_math::PointMath, rectangle::Rectangle,
+    vector::Vector,
+};
+use firefly_rust::{Color, Point, Size, Style, draw_circle, math};
 
 pub struct Bullets {
-    bullets: Vec<Bullet>,
+    pub bullets: Vec<Bullet>,
 }
 
 impl Bullets {
@@ -32,7 +16,7 @@ impl Bullets {
         }
     }
 
-    pub fn add_bullet(&mut self, position: Point, direction: Vector) {
+    pub fn add(&mut self, position: Point, direction: Vector) {
         self.bullets.push(Bullet::new(position, direction));
     }
 
@@ -47,6 +31,17 @@ impl Bullets {
         for bullet in self.bullets.iter() {
             bullet.draw(camera);
         }
+    }
+
+    pub fn hits(&mut self, rect: Rectangle) -> bool {
+        self.bullets
+            .iter_mut()
+            .find(|bullet| rect.overlaps(bullet.rect()))
+            .map(|bullet| {
+                bullet.kill();
+                bullet
+            })
+            .is_some()
     }
 }
 
@@ -91,6 +86,13 @@ impl Bullet {
         );
     }
 
+    pub fn rect(&self) -> Rectangle {
+        Rectangle {
+            position: Point::new(self.position.x - 1, self.position.y - 1),
+            size: Size::new(2, 2),
+        }
+    }
+
     pub fn should_keep(&self, camera: &Camera) -> bool {
         self.lifetime > 0 && camera.is_in_screen(self.position)
     }
@@ -118,5 +120,9 @@ impl Bullet {
         for _ in 0..amount.abs() as i32 {
             self.position = self.position.addy(step);
         }
+    }
+
+    fn kill(&mut self) {
+        self.lifetime = 0;
     }
 }

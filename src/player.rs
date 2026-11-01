@@ -70,20 +70,12 @@ impl Player {
 
         if self.shoot_timer == 0 {
             state.audio_player.play_sfx("shoot");
-            state.bullets.add_bullet(self.position, self.velocity);
+            state.bullets.add(self.position, self.velocity);
             self.shoot_timer = Self::SHOOT_TIMER;
         } else {
             state.audio_player.play_sfx("failed_shot");
         }
     }
-
-    /*
-    fn move_direction(&self) -> &Vector {
-        MOVE_DIRECTIONS
-            .get(self.shoot_direction)
-            .unwrap_or(&Vector::AXIS_ANGLE)
-    }
-    */
 
     pub fn move_player(&mut self, velocity: Vector, tile_map: &TileMap) {
         self.move_horizontally(velocity, tile_map);
