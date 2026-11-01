@@ -1,7 +1,9 @@
 #![no_std]
 #![no_main]
 extern crate alloc;
+use ffz_utils::animation::Animation;
 use ffz_utils::image_text::{CHARACTERS, ImageText};
+use ffz_utils::particles::{ParticleSystem, Visualization};
 use ffz_utils::tile_map::TileMap;
 use ffz_utils::utilities::random_range;
 use ffz_utils::{audio::AudioPlayer, camera::Camera};
@@ -28,6 +30,7 @@ extern "C" fn boot() {
     let spritesheet = firefly_rust::load_file_buf("spritesheet")
         .unwrap()
         .into_image();
+    let blood = firefly_rust::load_file_buf("blood").unwrap().into_image();
     let title_font = firefly_rust::load_file_buf("title_font")
         .unwrap()
         .into_image();
@@ -64,6 +67,9 @@ extern "C" fn boot() {
     let enemy_spritesheet = firefly_rust::load_file_buf("enemy_sprites")
         .unwrap()
         .into_image();
+    let animation = Animation::new(3, Size::new(16, 16), Point::MIN, 10);
+    let visualization = Visualization::Animation(animation, blood);
+    let particles = ParticleSystem::new(50, Size::new(480, 480), visualization);
     #[allow(static_mut_refs)]
     unsafe {
         STATE.set(State::new(
@@ -74,6 +80,7 @@ extern "C" fn boot() {
             character_spritesheet,
             enemy_spritesheet,
             ImageText::new(CHARACTERS.to_vec(), title_font),
+            particles,
         ))
     }
     .ok()
@@ -97,6 +104,7 @@ extern "C" fn update() {
     }
     state.bullets.update(&state.camera);
     state.monsters.update(&state.tile_map);
+    state.particles.update();
 }
 
 #[unsafe(no_mangle)]
@@ -119,6 +127,7 @@ fn render_game() {
     }
     state.monsters.draw(&state.camera, &state.enemy_sprites);
     state.bullets.draw(&state.camera);
+    state.particles.draw(&state.camera);
 }
 
 fn render_gameover() {

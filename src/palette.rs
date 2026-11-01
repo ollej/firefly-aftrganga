@@ -1,7 +1,6 @@
 use firefly_rust::{Color, RGB, set_color};
 
 pub fn set_colors() {
-    set_color(Color::from(0), RGB::new(0x00, 0x00, 0x00));
     set_color(Color::from(1), RGB::new(0xff, 0xff, 0xff));
     set_color(Color::from(2), RGB::new(0x0c, 0xe6, 0xf2));
     set_color(Color::from(3), RGB::new(0x00, 0x98, 0xdb));

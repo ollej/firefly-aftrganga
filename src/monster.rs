@@ -72,7 +72,7 @@ impl Monsters {
 }
 
 pub struct Monster {
-    position: Point,
+    pub position: Point,
     velocity: Vector,
     remainder: Vector,
     movement_timer: u32,

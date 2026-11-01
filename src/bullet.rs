@@ -1,7 +1,7 @@
 use alloc::vec::Vec;
 use ffz_utils::{
     camera::Camera, movable::movement_to_step, point_math::PointMath, rectangle::Rectangle,
-    vector::Vector,
+    utilities::random_range, vector::Vector,
 };
 use firefly_rust::{Color, Point, Size, Style, draw_circle, math};
 
@@ -42,6 +42,13 @@ impl Bullets {
             if let Some(monster) = state.monsters.hit_by(bullet.rect()) {
                 bullet.kill();
                 monster.kill();
+                state.particles.spawn_radial_burst(
+                    bullet.position,
+                    random_range(1, 5) as i32,
+                    || random_range(0, 2) as i32,
+                    20,
+                    Color::Red,
+                );
             }
         }
     }
