@@ -60,7 +60,6 @@ extern "C" fn boot() {
         .iter()
         .map(|peer| Player::new(peer, start_position))
         .collect();
-    //audio_player.play_music("music_loop");
     let character_spritesheet = firefly_rust::load_file_buf("character_sprites")
         .unwrap()
         .into_image();
@@ -85,6 +84,8 @@ extern "C" fn boot() {
     }
     .ok()
     .unwrap();
+    let state = get_state();
+    state.audio_player.play_music("theme");
 }
 
 #[unsafe(no_mangle)]
