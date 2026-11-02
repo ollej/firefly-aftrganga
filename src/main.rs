@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 extern crate alloc;
-use ffz_utils::animation::Animation;
+use ffz_utils::animation::*;
 use ffz_utils::image_text::{CHARACTERS, ImageText};
 use ffz_utils::particles::{ParticleSystem, Visualization};
 use ffz_utils::tile_map::TileMap;
@@ -70,6 +70,9 @@ extern "C" fn boot() {
     let animation = Animation::new(3, Size::new(16, 16), Point::MIN, 10);
     let visualization = Visualization::Animation(animation, blood);
     let particles = ParticleSystem::new(50, Size::new(480, 480), visualization);
+    let bullet_sprites = firefly_rust::load_file_buf("bullet_sprites")
+        .unwrap()
+        .into_image();
     #[allow(static_mut_refs)]
     unsafe {
         STATE.set(State::new(
@@ -81,6 +84,7 @@ extern "C" fn boot() {
             enemy_spritesheet,
             ImageText::new(CHARACTERS.to_vec(), title_font),
             particles,
+            bullet_sprites,
         ))
     }
     .ok()
@@ -126,7 +130,7 @@ fn render_game() {
         player.draw(&state.camera, &state.character_sprites);
     }
     state.monsters.draw(&state.camera, &state.enemy_sprites);
-    state.bullets.draw(&state.camera);
+    state.bullets.draw(&state.camera, &state.bullet_sprites);
     state.particles.draw(&state.camera);
 }
 

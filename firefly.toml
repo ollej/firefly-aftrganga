@@ -12,6 +12,8 @@ title_font = { path = "assets/title-font.png", palette = "draugr" }
 blood = { path = "assets/blood.png", palette = "draugr" }
 hit = { path = "assets/hit-5.wav" }
 lose = { path = "assets/lose-3.wav" }
+bullet_sprites = { path = "assets/bullet-sprites.png", palette = "draugr" }
+
 
 [palettes.draugr]
 1  = 0xFFFFFF
