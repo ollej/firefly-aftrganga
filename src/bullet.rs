@@ -1,9 +1,9 @@
 use alloc::vec::Vec;
 use ffz_utils::{
-    camera::Camera, movable::movement_to_step, point_math::PointMath, rectangle::Rectangle,
+    animation::Animation, camera::Camera, movable::movement_to_step, point_math::PointMath, rectangle::Rectangle,
     utilities::random_range, vector::Vector,
 };
-use firefly_rust::{Color, Point, Size, Style, draw_circle, math};
+use firefly_rust::{Image, ImageBuf, Color, Point, Size, Style, draw_circle, draw_sub_image, math};
 
 use crate::state::get_state;
 
@@ -30,9 +30,9 @@ impl Bullets {
         self.bullets.retain(|bullet| bullet.should_keep(camera));
     }
 
-    pub fn draw(&self, camera: &Camera) {
+    pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
         for bullet in self.bullets.iter() {
-            bullet.draw(camera);
+            bullet.draw(camera, sheet);
         }
     }
 
@@ -60,6 +60,7 @@ pub struct Bullet {
     velocity: Vector,
     remainder: Vector,
     lifetime: u32,
+    animation: Animation,
 }
 
 impl Bullet {
@@ -72,28 +73,38 @@ impl Bullet {
             velocity: velocity * Self::SPEED,
             remainder: Vector::ZERO,
             lifetime: Self::LIFETIME,
+            animation: Animation {
+                frames: 4,
+                size: Size::new(16,16),
+                frame_position: Point::new(0,0),
+                time_per_frame: 3,
+                looping: true,
+                ..Animation::default()
+            },
         }
     }
 
     pub fn update(&mut self) {
         self.move_bullet();
+        self.animation.update();
         self.lifetime = self.lifetime.saturating_sub(1);
     }
 
-    pub fn draw(&self, camera: &Camera) {
-        let draw_position = camera.world_to_screen(self.position);
-        draw_circle(
-            Point {
-                x: draw_position.x - 1,
-                y: draw_position.y - 1,
-            },
-            2,
-            Style {
-                fill_color: Color::Red,
-                stroke_color: Color::Red,
-                stroke_width: 1,
-            },
+    pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
+        let center = camera.world_to_screen(self.position);
+        let size = self.animation.frame_size();
+
+        let frame = sheet.sub(
+            self.animation.current_frame_position(),
+            size,
         );
+
+        let destination = Point::new(
+            center.x - size.width / 2,
+            center.y - size.height / 2,
+        );
+
+        draw_sub_image(&frame, destination);
     }
 
     pub fn rect(&self) -> Rectangle {
