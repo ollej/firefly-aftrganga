@@ -5,6 +5,7 @@ app_name = "Aftrganga"
 lang = "rust"
 
 [files]
+_manual = { path = "manual" }
 spritesheet = { path = "assets/spritesheet.png", palette = "draugr" }
 character_sprites = { path = "assets/character-sprites.png", palette = "draugr" }
 enemy_sprites = { path = "assets/enemy-sprites.png", palette = "draugr" }
