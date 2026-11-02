@@ -1,4 +1,4 @@
-# Firefly Ghosts
+# Aftrganga
 
 ![Aftrganga screenshot showing gameplay](aftrganga.png)
 
