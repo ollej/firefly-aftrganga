@@ -1,9 +1,9 @@
 use alloc::vec::Vec;
 use ffz_utils::{
-    animation::Animation, camera::Camera, movable::movement_to_step, point_math::PointMath, rectangle::Rectangle,
-    utilities::random_range, vector::Vector,
+    animation::Animation, camera::Camera, movable::movement_to_step, point_math::PointMath,
+    rectangle::Rectangle, utilities::random_range, vector::Vector,
 };
-use firefly_rust::{Image, ImageBuf, Color, Point, Size, Style, draw_circle, draw_sub_image, math};
+use firefly_rust::{Color, Image, ImageBuf, Point, Size, draw_sub_image, math};
 
 use crate::state::get_state;
 
@@ -24,7 +24,7 @@ impl Bullets {
 
     pub fn update(&mut self, camera: &Camera) {
         for bullet in self.bullets.iter_mut() {
-            bullet.update();
+            bullet.update(camera);
         }
         self.hit_monsters();
         self.bullets.retain(|bullet| bullet.should_keep(camera));
@@ -39,6 +39,9 @@ impl Bullets {
     pub fn hit_monsters(&mut self) {
         let state = get_state();
         for bullet in self.bullets.iter_mut() {
+            if !bullet.in_screen {
+                continue;
+            }
             if let Some(monster) = state.monsters.hit_by(bullet.rect()) {
                 bullet.kill();
                 monster.kill();
@@ -61,6 +64,7 @@ pub struct Bullet {
     remainder: Vector,
     lifetime: u32,
     animation: Animation,
+    in_screen: bool,
 }
 
 impl Bullet {
@@ -75,34 +79,30 @@ impl Bullet {
             lifetime: Self::LIFETIME,
             animation: Animation {
                 frames: 4,
-                size: Size::new(16,16),
-                frame_position: Point::new(0,0),
+                size: Size::new(16, 16),
+                frame_position: Point::new(0, 0),
                 time_per_frame: 3,
                 looping: true,
                 ..Animation::default()
             },
+            in_screen: true,
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, camera: &Camera) {
         self.move_bullet();
         self.animation.update();
         self.lifetime = self.lifetime.saturating_sub(1);
+        self.update_in_screen(camera);
     }
 
     pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
         let center = camera.world_to_screen(self.position);
         let size = self.animation.frame_size();
 
-        let frame = sheet.sub(
-            self.animation.current_frame_position(),
-            size,
-        );
+        let frame = sheet.sub(self.animation.current_frame_position(), size);
 
-        let destination = Point::new(
-            center.x - size.width / 2,
-            center.y - size.height / 2,
-        );
+        let destination = Point::new(center.x - size.width / 2, center.y - size.height / 2);
 
         draw_sub_image(&frame, destination);
     }
@@ -141,6 +141,10 @@ impl Bullet {
         for _ in 0..amount.abs() as i32 {
             self.position = self.position.addy(step);
         }
+    }
+
+    fn update_in_screen(&mut self, camera: &Camera) {
+        self.in_screen = camera.is_in_screen(self.position);
     }
 
     fn kill(&mut self) {

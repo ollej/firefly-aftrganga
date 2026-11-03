@@ -41,9 +41,9 @@ impl Monsters {
         }
     }
 
-    pub fn update(&mut self, tile_map: &TileMap) {
+    pub fn update(&mut self, camera: &Camera, tile_map: &TileMap) {
         for monster in self.monsters.iter_mut() {
-            monster.update();
+            monster.update(camera);
         }
         self.monsters.retain(|monster| monster.alive);
         self.spawn_timer = self.spawn_timer.saturating_sub(1);
@@ -67,7 +67,9 @@ impl Monsters {
     }
 
     pub fn hit_by(&mut self, rect: Rectangle) -> Option<&mut Monster> {
-        self.monsters.iter_mut().find(|monster| monster.hits(rect))
+        self.monsters
+            .iter_mut()
+            .find(|monster| monster.in_screen && monster.hits(rect))
     }
 }
 
@@ -78,6 +80,7 @@ pub struct Monster {
     movement_timer: u32,
     sprite: ActorSprite,
     alive: bool,
+    in_screen: bool,
 }
 
 impl Default for Monster {
@@ -89,6 +92,7 @@ impl Default for Monster {
             movement_timer: 0,
             sprite: ActorSprite::new(),
             alive: true,
+            in_screen: true,
         }
     }
 }
@@ -104,7 +108,7 @@ impl Monster {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, camera: &Camera) {
         let previous_position = self.position;
 
         self.movement_timer = self.movement_timer.saturating_sub(1);
@@ -114,6 +118,7 @@ impl Monster {
         }
         self.move_horizontally();
         self.move_vertically();
+        self.update_in_screen(camera);
 
         let actual_delta = Vector::new(
             (self.position.x - previous_position.x) as f32,
@@ -176,6 +181,10 @@ impl Monster {
                 state.audio_player.play_sfx("lose");
             }
         }
+    }
+
+    fn update_in_screen(&mut self, camera: &Camera) {
+        self.in_screen = camera.is_in_screen(self.position);
     }
 
     fn hits(&self, rect: Rectangle) -> bool {

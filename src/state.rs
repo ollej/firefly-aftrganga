@@ -2,7 +2,7 @@ use core::cell::OnceCell;
 
 use alloc::vec::Vec;
 use ffz_utils::{
-    animation::*,audio::AudioPlayer, camera::Camera, image_text::ImageText, particles::ParticleSystem,
+    audio::AudioPlayer, camera::Camera, image_text::ImageText, particles::ParticleSystem,
     tile_map::TileMap,
 };
 use firefly_rust::ImageBuf;
@@ -57,5 +57,15 @@ impl State {
             image_text,
             particles,
         }
+    }
+
+    pub(crate) fn reset(&mut self) {
+        self.monsters = Monsters::new(30);
+        self.bullets = Bullets::new();
+        self.particles.clear();
+        for player in self.players.iter_mut() {
+            player.reset();
+        }
+        self.game_state = GameState::Playing;
     }
 }

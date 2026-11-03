@@ -96,6 +96,15 @@ extern "C" fn boot() {
 extern "C" fn update() {
     let state = get_state();
 
+    match state.game_state {
+        GameState::Playing => update_playing(),
+        GameState::GameOver => update_gameover(),
+    }
+}
+
+fn update_playing() {
+    let state = get_state();
+
     if state.players.iter().any(|player| !player.alive) {
         state.game_state = GameState::GameOver;
         return;
@@ -108,8 +117,17 @@ extern "C" fn update() {
         }
     }
     state.bullets.update(&state.camera);
-    state.monsters.update(&state.tile_map);
+    state.monsters.update(&state.camera, &state.tile_map);
     state.particles.update();
+}
+
+fn update_gameover() {
+    let state = get_state();
+
+    let buttons = read_buttons(Peer::COMBINED);
+    if buttons.w {
+        state.reset();
+    }
 }
 
 #[unsafe(no_mangle)]
@@ -117,12 +135,12 @@ extern "C" fn render() {
     let state = get_state();
 
     match state.game_state {
-        GameState::Playing => render_game(),
+        GameState::Playing => render_playing(),
         GameState::GameOver => render_gameover(),
     }
 }
 
-fn render_game() {
+fn render_playing() {
     let state = get_state();
 
     clear_screen(Color::from(1));

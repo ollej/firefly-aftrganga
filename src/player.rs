@@ -150,6 +150,10 @@ impl Player {
         self.alive = true;
         self.points = 0;
         self.position = self.start_position;
+        self.velocity = Vector::ZERO;
+        self.sprite = ActorSprite::new();
+        self.shoot_timer = 0;
+        self.buttons = Buttons::default();
     }
 
     pub fn stop_movement(&mut self) {
