@@ -1,5 +1,5 @@
 [package]
-name = "firefly-ghosts"
+name = "firefly-aftrganga"
 version = "0.2.0"
 edition = "2024"
 
@@ -10,5 +10,5 @@ ffz-utils = { path="../ffz-utils" }
 # https://github.com/johnthagen/min-sized-rust
 [profile.release]
 strip = true    # Automatically strip symbols from the binary.
-opt-level = "s" # Optimize for speed.
+opt-level = 3   # Optimize for speed.
 lto = true      # Enable link-time optimization

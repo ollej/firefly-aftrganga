@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "firefly-ghosts"
+name = "firefly-aftrganga"
 version = "0.2.0"
 dependencies = [
  "ffz-utils",
