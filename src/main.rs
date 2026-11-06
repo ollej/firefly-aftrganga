@@ -4,6 +4,8 @@ extern crate alloc;
 use ffz_utils::animation::*;
 use ffz_utils::image_text::{CHARACTERS, ImageText};
 use ffz_utils::particles::{ParticleSystem, Visualization};
+use ffz_utils::rectangle::Rectangle;
+use ffz_utils::text_box::{HorizontalAlignment, TextBox};
 use ffz_utils::tile_map::TileMap;
 use ffz_utils::utilities::random_range;
 use ffz_utils::{audio::AudioPlayer, camera::Camera};
@@ -55,6 +57,18 @@ extern "C" fn boot() {
     let camera = Camera::new(Size::new(480, 480));
     let audio_player = AudioPlayer::new(0.5, 1.0);
     let map_pixel_size = tile_map.map_size_in_pixels;
+    let font = load_file_buf("font").unwrap().into_font();
+    let text_box = TextBox {
+        font: Some(font),
+        font_size: Size::new(5, 8),
+        horizontal_alignment: HorizontalAlignment::Center,
+        rect: Rectangle {
+            position: Point::new(0, 126),
+            size: Size::new(240, 20),
+        },
+        color: Color::from(8),
+        ..TextBox::default()
+    };
     let start_position = Point::new(map_pixel_size.width / 2, map_pixel_size.height / 2);
     let players = get_peers()
         .iter()
@@ -84,6 +98,7 @@ extern "C" fn boot() {
             ImageText::new(CHARACTERS.to_vec(), title_font),
             particles,
             bullet_sprites,
+            text_box,
         ))
     }
     .ok()
@@ -97,8 +112,18 @@ extern "C" fn update() {
     let state = get_state();
 
     match state.game_state {
+        GameState::Title => update_title(),
         GameState::Playing => update_playing(),
         GameState::GameOver => update_gameover(),
+    }
+}
+
+fn update_title() {
+    let state = get_state();
+
+    let buttons = read_buttons(Peer::COMBINED);
+    if buttons.w {
+        state.game_state = GameState::Playing;
     }
 }
 
@@ -127,6 +152,7 @@ fn update_gameover() {
     let buttons = read_buttons(Peer::COMBINED);
     if buttons.w {
         state.reset();
+        state.game_state = GameState::Title;
     }
 }
 
@@ -135,9 +161,18 @@ extern "C" fn render() {
     let state = get_state();
 
     match state.game_state {
+        GameState::Title => render_title(),
         GameState::Playing => render_playing(),
         GameState::GameOver => render_gameover(),
     }
+}
+
+fn render_title() {
+    let state = get_state();
+    clear_screen(Color::from(13));
+    state.image_text.draw("AFTR", Point::new(52, 44), 1);
+    state.image_text.draw("GANGA", Point::new(35, 84), 1);
+    state.text_box.draw(&["Press button <W> to start"]);
 }
 
 fn render_playing() {

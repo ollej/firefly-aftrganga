@@ -3,7 +3,7 @@ use core::cell::OnceCell;
 use alloc::vec::Vec;
 use ffz_utils::{
     audio::AudioPlayer, camera::Camera, image_text::ImageText, particles::ParticleSystem,
-    tile_map::TileMap,
+    text_box::TextBox, tile_map::TileMap,
 };
 use firefly_rust::ImageBuf;
 
@@ -29,6 +29,7 @@ pub struct State {
     pub game_state: GameState,
     pub image_text: ImageText,
     pub particles: ParticleSystem,
+    pub text_box: TextBox,
 }
 
 impl State {
@@ -42,6 +43,7 @@ impl State {
         image_text: ImageText,
         particles: ParticleSystem,
         bullet_sprites: ImageBuf,
+        text_box: TextBox,
     ) -> Self {
         Self {
             camera,
@@ -53,9 +55,10 @@ impl State {
             bullet_sprites,
             bullets: Bullets::new(),
             monsters: Monsters::new(30),
-            game_state: GameState::Playing,
+            game_state: GameState::Title,
             image_text,
             particles,
+            text_box,
         }
     }
 
