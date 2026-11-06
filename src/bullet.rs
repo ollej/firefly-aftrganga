@@ -1,7 +1,7 @@
 use alloc::vec::Vec;
 use ffz_utils::{
     animation::Animation, camera::Camera, movable::movement_to_step, point_math::PointMath,
-    rectangle::Rectangle, utilities::random_range, vector::Vector,
+    rectangle::Rectangle, tile_map::TileMap, utilities::random_range, vector::Vector,
 };
 use firefly_rust::{Color, Image, ImageBuf, Point, Size, draw_sub_image, math};
 
@@ -22,12 +22,12 @@ impl Bullets {
         self.bullets.push(Bullet::new(position, direction));
     }
 
-    pub fn update(&mut self, camera: &Camera) {
+    pub fn update(&mut self, tile_map: &TileMap) {
         for bullet in self.bullets.iter_mut() {
-            bullet.update(camera);
+            bullet.update();
         }
         self.hit_monsters();
-        self.bullets.retain(|bullet| bullet.should_keep(camera));
+        self.bullets.retain(|bullet| bullet.should_keep(tile_map));
     }
 
     pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
@@ -39,12 +39,8 @@ impl Bullets {
     pub fn hit_monsters(&mut self) {
         let state = get_state();
         for bullet in self.bullets.iter_mut() {
-            if !bullet.in_screen {
-                continue;
-            }
-            if let Some(monster) = state.monsters.hit_by(bullet.rect()) {
+            if state.monsters.kill_monsters_in_rect(bullet.rect()) {
                 bullet.kill();
-                monster.kill();
                 state.audio_player.play_sfx("hit");
                 state.particles.spawn_radial_burst(
                     bullet.position,
@@ -64,7 +60,6 @@ pub struct Bullet {
     remainder: Vector,
     lifetime: u32,
     animation: Animation,
-    in_screen: bool,
 }
 
 impl Bullet {
@@ -85,15 +80,13 @@ impl Bullet {
                 looping: true,
                 ..Animation::default()
             },
-            in_screen: true,
         }
     }
 
-    pub fn update(&mut self, camera: &Camera) {
+    pub fn update(&mut self) {
         self.move_bullet();
         self.animation.update();
         self.lifetime = self.lifetime.saturating_sub(1);
-        self.update_in_screen(camera);
     }
 
     pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
@@ -114,8 +107,8 @@ impl Bullet {
         }
     }
 
-    pub fn should_keep(&self, camera: &Camera) -> bool {
-        self.lifetime > 0 && camera.is_in_screen(self.position)
+    pub fn should_keep(&self, tile_map: &TileMap) -> bool {
+        self.lifetime > 0 && tile_map.rect().contains(self.position)
     }
 
     pub fn move_bullet(&mut self) {
@@ -141,10 +134,6 @@ impl Bullet {
         for _ in 0..amount.abs() as i32 {
             self.position = self.position.addy(step);
         }
-    }
-
-    fn update_in_screen(&mut self, camera: &Camera) {
-        self.in_screen = camera.is_in_screen(self.position);
     }
 
     fn kill(&mut self) {

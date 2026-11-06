@@ -6,12 +6,14 @@ use ffz_utils::{
 use firefly_rust::{ImageBuf, Point, Size, math};
 
 use crate::actor_sprite::{ActorSprite, ENEMY_SPRITE};
+use crate::collision_grid::CollisionGrid;
 use crate::state::get_state;
 
 pub struct Monsters {
     monsters: Vec<Monster>,
     spawn_timer: u32,
     max_spawn_timer: u32,
+    collision_grid: CollisionGrid,
 }
 
 impl Default for Monsters {
@@ -20,17 +22,20 @@ impl Default for Monsters {
             monsters: Vec::new(),
             spawn_timer: 0,
             max_spawn_timer: 0,
+            collision_grid: CollisionGrid::new(Size::default()),
         }
     }
 }
 
 impl Monsters {
     pub const MAX_MONSTERS: usize = 20;
+    pub const SPAWN_TIMER: u32 = 30;
 
-    pub fn new(spawn_timer: u32) -> Self {
+    pub fn new(spawn_timer: u32, grid_size: Size) -> Self {
         Monsters {
             spawn_timer,
             max_spawn_timer: spawn_timer,
+            collision_grid: CollisionGrid::new(grid_size),
             ..Default::default()
         }
     }
@@ -41,10 +46,20 @@ impl Monsters {
         }
     }
 
-    pub fn update(&mut self, camera: &Camera, tile_map: &TileMap) {
-        for monster in self.monsters.iter_mut() {
-            monster.update(camera);
+    pub fn update(&mut self, tile_map: &TileMap) {
+        for (index, monster) in self.monsters.iter_mut().enumerate() {
+            monster.update();
+
+            if monster.has_moved() {
+                self.collision_grid.replace(monster.rect(), index);
+            }
         }
+
+        let state = get_state();
+        for player in state.players.iter_mut() {
+            player.kill_if_hit_by_monster();
+        }
+
         self.monsters.retain(|monster| monster.alive);
         self.spawn_timer = self.spawn_timer.saturating_sub(1);
         if self.spawn_timer == 0 {
@@ -67,32 +82,54 @@ impl Monsters {
     }
 
     pub fn hit_by(&mut self, rect: Rectangle) -> Option<&mut Monster> {
-        self.monsters
-            .iter_mut()
-            .find(|monster| monster.in_screen && monster.hits(rect))
+        self.monsters.iter_mut().find(|monster| monster.hits(rect))
+    }
+
+    pub fn has_monsters_in_rect(&self, rect: Rectangle) -> bool {
+        self.collision_grid
+            .entities_at(rect)
+            .iter()
+            .flat_map(|entity| self.monsters.get(*entity))
+            .any(|monster| monster.hits(rect))
+    }
+
+    pub fn kill_monsters_in_rect(&mut self, rect: Rectangle) -> bool {
+        let mut killed = false;
+        self.collision_grid
+            .entities_at(rect)
+            .iter()
+            .for_each(|entity| {
+                if let Some(monster) = self.monsters.get_mut(*entity) {
+                    if monster.hits(rect) {
+                        monster.kill();
+                        killed = true;
+                    }
+                }
+            });
+        killed
     }
 }
 
 pub struct Monster {
     pub position: Point,
+    previous_position: Point,
     velocity: Vector,
     remainder: Vector,
     movement_timer: u32,
     sprite: ActorSprite,
     alive: bool,
-    in_screen: bool,
 }
 
 impl Default for Monster {
     fn default() -> Self {
         Self {
             position: Point::MIN,
+            previous_position: Point::MIN,
             velocity: Vector::ZERO,
             remainder: Vector::ZERO,
             movement_timer: 0,
             sprite: ActorSprite::new(),
             alive: true,
-            in_screen: true,
         }
     }
 }
@@ -103,13 +140,14 @@ impl Monster {
     pub fn new(position: Point, velocity: Vector) -> Self {
         Self {
             position,
+            previous_position: position,
             velocity,
             ..Default::default()
         }
     }
 
-    pub fn update(&mut self, camera: &Camera) {
-        let previous_position = self.position;
+    pub fn update(&mut self) {
+        self.previous_position = self.position;
 
         self.movement_timer = self.movement_timer.saturating_sub(1);
         if self.movement_timer == 0 {
@@ -118,14 +156,9 @@ impl Monster {
         }
         self.move_horizontally();
         self.move_vertically();
-        self.update_in_screen(camera);
 
-        let actual_delta = Vector::new(
-            (self.position.x - previous_position.x) as f32,
-            (self.position.y - previous_position.y) as f32,
-        );
+        let actual_delta = Vector::from_point(self.position - self.previous_position);
         self.sprite.update(actual_delta, ENEMY_SPRITE);
-        self.kill_players();
     }
 
     pub fn move_horizontally(&mut self) {
@@ -173,21 +206,11 @@ impl Monster {
         self.alive = false;
     }
 
-    fn kill_players(&mut self) {
-        let state = get_state();
-        for player in state.players.iter_mut() {
-            if self.hits(player.rect()) {
-                player.kill();
-                state.audio_player.play_sfx("lose");
-            }
-        }
-    }
-
-    fn update_in_screen(&mut self, camera: &Camera) {
-        self.in_screen = camera.is_in_screen(self.position);
-    }
-
     fn hits(&self, rect: Rectangle) -> bool {
         self.rect().overlaps(rect)
+    }
+
+    fn has_moved(&self) -> bool {
+        self.position != self.previous_position
     }
 }

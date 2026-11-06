@@ -19,6 +19,7 @@ use crate::tile_array::{BLOCKING_TILES, TILE_ARRAY};
 
 mod actor_sprite;
 mod bullet;
+mod collision_grid;
 mod game_state;
 mod monster;
 mod palette;
@@ -130,20 +131,19 @@ fn update_title() {
 fn update_playing() {
     let state = get_state();
 
-    if state.players.iter().any(|player| !player.alive) {
-        state.game_state = GameState::GameOver;
-        return;
-    }
-
     for player in state.players.iter_mut() {
         player.update(&state.tile_map);
         if get_me() == player.peer {
             state.camera.follow_player(player.position, 0.2);
         }
     }
-    state.bullets.update(&state.camera);
-    state.monsters.update(&state.camera, &state.tile_map);
+    state.bullets.update(&state.tile_map);
+    state.monsters.update(&state.tile_map);
     state.particles.update();
+
+    if state.players.iter().any(|player| !player.alive) {
+        state.game_state = GameState::GameOver;
+    }
 }
 
 fn update_gameover() {

@@ -45,6 +45,7 @@ impl State {
         bullet_sprites: ImageBuf,
         text_box: TextBox,
     ) -> Self {
+        let map_size = tile_map.map_size_in_pixels;
         Self {
             camera,
             tile_map,
@@ -54,7 +55,7 @@ impl State {
             enemy_sprites,
             bullet_sprites,
             bullets: Bullets::new(),
-            monsters: Monsters::new(30),
+            monsters: Monsters::new(Monsters::SPAWN_TIMER, map_size),
             game_state: GameState::Title,
             image_text,
             particles,
@@ -62,8 +63,8 @@ impl State {
         }
     }
 
-    pub(crate) fn reset(&mut self) {
-        self.monsters = Monsters::new(30);
+    pub fn reset(&mut self) {
+        self.monsters = Monsters::new(Monsters::SPAWN_TIMER, self.tile_map.map_size_in_pixels);
         self.bullets = Bullets::new();
         self.particles.clear();
         for player in self.players.iter_mut() {

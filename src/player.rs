@@ -170,4 +170,11 @@ impl Player {
     pub fn kill(&mut self) {
         self.alive = false;
     }
+
+    pub fn kill_if_hit_by_monster(&mut self) {
+        let state = get_state();
+        if state.monsters.has_monsters_in_rect(self.rect()) {
+            self.kill();
+        }
+    }
 }
