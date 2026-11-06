@@ -31,7 +31,11 @@ impl Bullets {
     }
 
     pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
-        for bullet in self.bullets.iter() {
+        for bullet in self
+            .bullets
+            .iter()
+            .filter(|bullet| camera.is_rect_in_screen(bullet.rect()))
+        {
             bullet.draw(camera, sheet);
         }
     }

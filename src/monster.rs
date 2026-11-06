@@ -69,7 +69,11 @@ impl Monsters {
     }
 
     pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
-        for monster in self.monsters.iter() {
+        for monster in self
+            .monsters
+            .iter()
+            .filter(|monster| camera.is_rect_in_screen(monster.rect()))
+        {
             monster.draw(camera, sheet);
         }
     }
@@ -81,7 +85,7 @@ impl Monsters {
         self.add(position, velocity);
     }
 
-    pub fn hit_by(&mut self, rect: Rectangle) -> Option<&mut Monster> {
+    pub fn monsters_hit_by(&mut self, rect: Rectangle) -> Option<&mut Monster> {
         self.monsters.iter_mut().find(|monster| monster.hits(rect))
     }
 

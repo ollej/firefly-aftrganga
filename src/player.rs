@@ -138,7 +138,9 @@ impl Player {
     }
 
     pub fn draw(&self, camera: &Camera, sheet: &ImageBuf) {
-        self.draw_player(camera, sheet);
+        if camera.is_rect_in_screen(self.rect()) {
+            self.draw_player(camera, sheet);
+        }
     }
 
     pub fn draw_player(&self, camera: &Camera, sheet: &ImageBuf) {
