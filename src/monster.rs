@@ -48,7 +48,7 @@ impl Monsters {
 
     pub fn update(&mut self, tile_map: &TileMap) {
         for (index, monster) in self.monsters.iter_mut().enumerate() {
-            monster.update();
+            monster.update(tile_map);
 
             if monster.has_moved() {
                 self.collision_grid.replace(monster.rect(), index);
@@ -150,7 +150,7 @@ impl Monster {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, tile_map: &TileMap) {
         self.previous_position = self.position;
 
         self.movement_timer = self.movement_timer.saturating_sub(1);
@@ -158,30 +158,48 @@ impl Monster {
             self.velocity = self.vector_to_closest_player().unwrap_or(Vector::ZERO);
             self.movement_timer = Self::MOVEMENT_TIMER;
         }
-        self.move_horizontally();
-        self.move_vertically();
+        self.move_horizontally(tile_map);
+        self.move_vertically(tile_map);
 
         let actual_delta = Vector::from_point(self.position - self.previous_position);
         self.sprite.update(actual_delta, ENEMY_SPRITE);
     }
 
-    pub fn move_horizontally(&mut self) {
+    pub fn move_horizontally(&mut self, tile_map: &TileMap) {
         self.remainder.x += self.velocity.x;
         let amount = math::floor(self.remainder.x + 0.5);
         self.remainder.x -= amount;
         let step = movement_to_step(amount);
         for _ in 0..amount.abs() as i32 {
-            self.position = self.position.addx(step);
+            let test_pos = self.position.addx(step);
+            if !tile_map.is_blocked(test_pos) {
+                self.position = test_pos;
+            } else {
+                let nudge_pos = test_pos.addy(step);
+                if !tile_map.is_blocked(nudge_pos) {
+                    // There was a collision, let's nudge up
+                    self.position = nudge_pos;
+                }
+            }
         }
     }
 
-    pub fn move_vertically(&mut self) {
+    pub fn move_vertically(&mut self, tile_map: &TileMap) {
         self.remainder.y += self.velocity.y;
         let amount = math::floor(self.remainder.y + 0.5);
         self.remainder.y -= amount;
         let step = movement_to_step(amount);
         for _ in 0..amount.abs() as i32 {
-            self.position = self.position.addy(step);
+            let test_pos = self.position.addy(step);
+            if !tile_map.is_blocked(test_pos) {
+                self.position = test_pos;
+            } else {
+                let nudge_pos = test_pos.addx(step);
+                if !tile_map.is_blocked(nudge_pos) {
+                    // There was a collision, let's nudge up
+                    self.position = nudge_pos
+                }
+            }
         }
     }
 
